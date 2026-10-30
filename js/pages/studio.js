@@ -1,0 +1,4 @@
+import { db, names, user, allowedKind } from '../data.js';
+import { $, esc, button, link, empty, badge, head, table, enrollmentTable, certificateTable } from '../utils.js';
+
+export function renderStudio(){if(!user())return empty('请先选择体验账号')+button('选择账号','account');const u=user(),own=db.records.filter(r=>r.user===u.id&&['course','activity'].includes(r.kind)&&r.status!=='已删除');return head('机构与课程管理','机构资格与课程发布资格独立管理。', (allowedKind('course')?link('＋ 发布课程','edit/course'):'')+(allowedKind('activity')?link('＋ 发布活动','edit/activity'):''))+`<p class="note">当前身份：${esc(u.roles.join('、')||'普通用户')}。${!u.roles.includes('课程发布人')?'尚无课程发布资格，可前往个人中心申请。':''}</p>`+table(['内容','类型','状态','操作'],own.map(r=>[esc(r.title),names[r.kind],badge(r.status),link('编辑','edit/'+r.kind+'/'+r.id,'btn small')+link('查看','detail/'+r.id,'btn small')]))+`<h2>活动报名审核</h2>`+enrollmentTable(false)+`<h2>活动证书</h2>`+certificateTable(false);}
