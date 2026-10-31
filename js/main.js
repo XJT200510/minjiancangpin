@@ -5,7 +5,7 @@ import { renderResource, renderDetail } from './pages/resource.js';
 import { renderForum } from './pages/forum.js';
 import { renderCourses } from './pages/courses.js';
 import { renderActivities } from './pages/activities.js';
-import { renderCreator, renderEditor, lessonFields } from './pages/creator.js';
+import { renderCreator, renderEditor, lessonFields, bindCreatorControls, bindTopicPicker, prepareTopics } from './pages/creator.js';
 import { renderProfile } from './pages/profile.js';
 import { renderExpert } from './pages/expert.js';
 import { renderStudio } from './pages/studio.js';
@@ -32,7 +32,12 @@ function need(){if(!user()){account();return false;}if(user().status!=='正常')
 function go(to){if(location.hash.slice(1)===to)render();else location.hash=to;}
 function account(){modal('切换体验账号',`<p class="note">用于检查不同身份的页面流程，不是真实登录。同一用户可以具备多个身份，机构须另行申请课程发布资格。</p><div class="account-list">${db.users.map(u=>`<div class="lesson"><b>${esc(u.name)}</b><p>${esc(u.roles.join('、')||'普通用户')} · ${u.status}</p>${button('使用此体验账号','switch',u.id)}</div>`).join('')}</div><div class="actions">${button('注册体验账号','register')}${button('以游客浏览','switch',0)}</div>`);}
 
-function bindEditor(){const form=$('#content-form');if(!form)return;form.onsubmit=e=>{e.preventDefault();const {kind,id,r}=editContext;const draft=e.submitter?.value==='draft';const formData=new FormData(form);const d=Object.fromEntries(formData);if(kind==='exhibition')d.collection_ids=formData.getAll('collection_ids').join(',');try{if(!allowedKind(kind))throw Error('当前账号无发布资格。');const title=d[specs[kind][0].key]?.trim();if(!title)throw Error('请至少填写标题或活动内容后再保存。');if(!draft&&!form.reportValidity())return;let lessons=$$('[data-lesson]',form).map(el=>{let i=el.dataset.lesson,o={id:uid()};for(const f of ['lesson_title','lesson_order','video_url','duration','content','material_reference'])o[f]=d[`lesson_${i}_${f}`];return o;});if(kind==='course'&&!draft&&!lessons.length)throw Error('请至少添加一个视频课时。');if(kind==='activity'&&!draft){if(new Date(d.registration_deadline)>new Date(d.activity_time))throw Error('报名截止不能晚于活动开始。');if(new Date(d.activity_time)<=new Date())throw Error('活动时间应晚于当前时间。');}if(kind==='exhibition'&&!draft&&(d.collection_ids||'').split(',').some(x=>!rec(x)||rec(x).kind!=='collection'||!visible(rec(x))))throw Error('请选择已发布的藏品作为展品。');let record=r||{id:uid(),kind,user:db.current,created:now(),img:kind==='collection'?'vase':'letters'};for(const f of specs[kind])record[f.key]=d[f.key]?.trim()||'';Object.assign(record,{title:title.slice(0,kind==='activity'?50:kind==='post'?200:120),body:d.description||d.topic_description||d.content||d.introduction||d.announcement_content||'',updated:now(),status:draft?'草稿':['collection','course','activity'].includes(kind)?'待审核':'已发布'});if(kind==='course')record.lessons=lessons;if(!r)db.records.unshift(record);if(kind==='collection'&&!draft&&!db.appraisals.some(a=>a.record===record.id&&a.status!=='已完成'))db.appraisals.push({id:uid(),record:record.id,user:db.current,status:'待分配',deadline:new Date(Date.now()+10*86400000).toISOString(),tasks:[],supplements:[],time:now()});save();editContext=null;go('creator');toast(draft?'草稿已保存在本机浏览器':'内容已提交，当前为前端演示');}catch(err){$('#form-error').textContent=err.message;}};}
+function bindEditor(){const form=$('#content-form');if(!form)return;form.onsubmit=e=>{e.preventDefault();const {kind,id,r}=editContext;const draft=e.submitter?.value==='draft';const formData=new FormData(form);const d=Object.fromEntries(formData);if(kind==='exhibition')d.collection_ids=formData.getAll('collection_ids').join(',');try{if(!allowedKind(kind))throw Error('当前账号无发布资格。');const title=d[specs[kind][0].key]?.trim();if(!title)throw Error('请至少填写标题或活动内容后再保存。');if(!draft&&!form.reportValidity())return;let lessons=$$('[data-lesson]',form).map(el=>{let i=el.dataset.lesson,o={id:uid()};for(const f of ['lesson_title','lesson_order','video_url','duration','content','material_reference'])o[f]=d[`lesson_${i}_${f}`];return o;});if(kind==='course'&&!draft&&!lessons.length)throw Error('请至少添加一个视频课时。');if(kind==='activity'&&!draft){if(new Date(d.registration_deadline)>new Date(d.activity_time))throw Error('报名截止不能晚于活动开始。');if(new Date(d.activity_time)<=new Date())throw Error('活动时间应晚于当前时间。');}if(kind==='exhibition'&&!draft&&(d.collection_ids||'').split(',').some(x=>!rec(x)||rec(x).kind!=='collection'||!visible(rec(x))))throw Error('请选择已发布的藏品作为展品。');const topicData=['post','question'].includes(kind)?prepareTopics(formData,draft):null;let record=r||{id:uid(),kind,user:db.current,created:now(),img:kind==='collection'?'vase':'letters'};for(const f of specs[kind])record[f.key]=d[f.key]?.trim()||'';Object.assign(record,{title:title.slice(0,kind==='activity'?50:kind==='post'?200:120),body:d.description||d.topic_description||d.content||d.introduction||d.announcement_content||'',updated:now(),status:draft?'草稿':['collection','course','activity'].includes(kind)?'待审核':'已发布'});if(topicData){
+ record.topics=topicData.topics;record.pendingTopic=topicData.pendingTopic;
+ if(topicData.newTopic){const t=topicData.newTopic;db.records.unshift({id:uid(),kind:'topic',user:db.current,title:t.name,topic_name:t.name,body:t.description,topic_description:t.description,img:'letters',status:'已发布',created:now(),updated:now(),publishedAt:now()});}
+ }
+ if(!draft&&record.status==='已发布'&&!record.publishedAt)record.publishedAt=now();
+ if(kind==='course')record.lessons=lessons;if(!r)db.records.unshift(record);if(kind==='collection'&&!draft&&!db.appraisals.some(a=>a.record===record.id&&a.status!=='已完成'))db.appraisals.push({id:uid(),record:record.id,user:db.current,status:'待分配',deadline:new Date(Date.now()+10*86400000).toISOString(),tasks:[],supplements:[],time:now()});save();editContext=null;go('creator');toast(draft?'草稿已保存在本机浏览器':'内容已提交，当前为前端演示');}catch(err){$('#form-error').textContent=err.message;}};}
 function progress(id){const r=rec(id),a=db.appraisals.find(a=>a.record===id&&a.status!=='已取消');if(!r)return;if(r.user!==db.current&&!admin()&&!a?.tasks.some(t=>t.expert===db.current))return toast('无权查看');modal('处理进度 · '+r.title,`<p>${badge(r.status)}</p>${r.reason?`<p class="note">审核说明：${esc(r.reason)}</p>`:''}${a?`<p>申请：${a.id} · ${badge(a.status)} · 截止：${stamp(a.deadline)}</p>${table(['专家','提交状态','意见'],a.tasks.map(t=>[esc(uname(t.expert)),t.opinion?badge(t.valid||'待审核'):'尚未提交',esc(t.opinion||'—')]))}<h3>补充材料要求</h3>${a.supplements.map(s=>`<div class="lesson"><p>${esc(s.requirement)}</p><p>${esc(s.material||'等待补充')}</p>${r.user===db.current?button('提交补充材料','supplement-submit',`${a.id}:${s.id}`):''}</div>`).join('')||'<p>暂无补充要求</p>'}${a.result?`<p class="note">最终结论：${a.result}。${esc(a.reason)}</p>`:''}`:'<p>提交后的审核结果将在这里展示。</p>'}`);}
 function reason(title,callback,fields=[],label='确认'){formModal(title,[...fields,F('reason','说明 / 原因','textarea',true,500)],{},d=>{callback(d);save();close();render();toast('已更新本机演示记录');},label);}
 function owned(r){return r?.user===db.current||admin();}
@@ -140,8 +145,9 @@ function render(){
  const next=location.hash.slice(1)||'home';
  if(next!==route){filter='';categoryFilter='';eraFilter='';page=1;}
  route=next;
- const [section,id,editId]=route.split('/');
- const activeSection={questions:'forum',topics:'forum',exhibitions:'resource',announcements:'home'}[section]||section;
+ const [routePath, creatorQuery='']=route.split('?');
+ const [section,id,editId]=routePath.split('/');
+ const activeSection={questions:'forum',topics:'forum',exhibitions:'resource',announcements:'home',edit:'creator'}[section]||section;
  $('#account-button').textContent=user()?user().name+' · 切换体验':'游客 · 体验登录';
  $('#nav').innerHTML=navigation.map(([title,to])=>link(title,to,activeSection===to?'active':'')).join('');
  $('#crumb').innerHTML=link('首页','home','')+'　›　'+esc(section==='announcements'?'通知公告':navigation.find(x=>x[1]===activeSection)?.[0]||'内容详情');
@@ -155,7 +161,7 @@ function render(){
  case 'activities':out=renderActivities(state);break;
  case 'detail':out=renderDetail(+id);break;
  case 'edit':editContext={kind:id,id:+editId||undefined,r:rec(+editId)};out=renderEditor(id,+editId||undefined);break;
- case 'creator':out=renderCreator();break;
+ case 'creator':out=renderCreator(id||'overview',creatorQuery);break;
  case 'profile':out=renderProfile(id||'overview');break;
  case 'expert':out=renderExpert();break;
  case 'studio':out=renderStudio();break;
@@ -169,7 +175,7 @@ function render(){
  page=state.page;
  $('#app').innerHTML=out;
  if(section==='home')startCarousel();
- bindEditor();save();
+ bindEditor();bindCreatorControls();bindTopicPicker();save();
 }
 initUI();
 $('#global-search-form').onsubmit=e=>{e.preventDefault();const q=new FormData(e.target).get('q').trim();go('search/'+encodeURIComponent(q));};window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});render();
