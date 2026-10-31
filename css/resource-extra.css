@@ -1,0 +1,50 @@
+/* ============================================================
+   resource-extra.css — 资源库 / 专题展览 新增样式
+   说明：本文件由组长统一接入 index.html（加一行 <link>）。
+   在接入之前，页面仍依赖 pages.css 的 .tile / .catalog 基础样式正常显示，
+   仅缺少以下「统一图片比例」与「专题封面」的精修效果。
+   ============================================================ */
+
+/* 藏品卡片：图片区域统一为 4:3，图片完整展示、不拉伸、不变形 */
+.resource-catalog .tile-media {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: #f2eadc;
+  overflow: hidden;
+}
+
+.resource-catalog .tile-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14px;
+}
+
+/* 专题展览卡片：封面铺满统一比例（cover 裁剪边缘，不拉伸、不变形） */
+.exhibition-catalog .tile-media {
+  display: block;
+  aspect-ratio: 16 / 10;
+  background: #eadbc1;
+  overflow: hidden;
+}
+
+.exhibition-catalog .tile-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  padding: 0;
+}
+
+/* 悬停反馈（可选，保持与整体风格一致的暖色阴影） */
+.resource-catalog .tile,
+.exhibition-catalog .tile {
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.resource-catalog .tile:hover,
+.exhibition-catalog .tile:hover {
+  box-shadow: 0 12px 28px rgba(91, 54, 24, .14);
+  transform: translateY(-3px);
+}
