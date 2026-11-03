@@ -1,0 +1,367 @@
+/* ============================================================
+   forum-extra.css — 论坛交流（帖子 / 问答 / 话题广场）新增样式
+   说明：本文件由 js/pages/forum.js 在运行时自动注入，打开页面即生效，
+        不依赖 index.html 是否已接入 <link>。
+        若组长统一改为静态引入，删除 forum.js 末尾的 injectForumStyles() 即可。
+   复用：pages.css 的 .forum-layout / .forum-ranking / .rank-number / .pager，
+        base.css 的 .tabs / .clip / .empty，此处只做增量与精修。
+   ============================================================ */
+
+/* ---------- 板块切换：选中态更明显 + 显示各板块条数 ---------- */
+.forum-tabs {
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+
+.forum-tabs .forum-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #7b6350;
+  border: 1px solid #e6d8c2;
+  background: #fff;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.forum-tabs .forum-tab:hover {
+  border-color: #d5b992;
+  background: #fffaf0;
+}
+
+.forum-tabs .forum-tab em {
+  font-style: normal;
+  font-size: 11px;
+  line-height: 18px;
+  min-width: 18px;
+  padding: 0 5px;
+  text-align: center;
+  border-radius: 9px;
+  background: #f3e7cf;
+  color: #80511f;
+}
+
+.forum-tabs .forum-tab.active {
+  background: #8b471f;
+  border-color: #8b471f;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: inset 0 -3px 0 #d89b42;
+}
+
+.forum-tabs .forum-tab.active em {
+  background: rgba(255, 255, 255, .22);
+  color: #fff;
+}
+
+/* ---------- 搜索提示行 ---------- */
+.forum-search-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -8px 0 16px;
+  font-size: 13px;
+  color: #8d7c65;
+}
+
+.forum-clear {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  color: #a8612b;
+  border-bottom: 1px dashed #d8c6aa;
+}
+
+.forum-clear:hover {
+  color: #8b471f;
+}
+
+/* ---------- 帖子 / 问答列表 ---------- */
+.forum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.forum-item {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: 16px;
+  padding: 16px;
+  background: #fffdf9;
+  border: 1px solid #e6d9c5;
+  border-radius: 10px;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+
+.forum-item:hover {
+  border-color: #d5b992;
+  box-shadow: 0 10px 24px rgba(91, 54, 24, .10);
+  transform: translateY(-2px);
+}
+
+.forum-thumb {
+  display: block;
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  background: #f2eadc;
+  overflow: hidden;
+}
+
+.forum-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.forum-item-body {
+  min-width: 0;
+}
+
+.forum-item-body h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 6px;
+  font: 700 18px/1.45 serif;
+  color: #773b1b;
+}
+
+.forum-item-body h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.forum-item-body h3 a:hover {
+  color: #a8321e;
+}
+
+.forum-item-body .clip {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #80715e;
+}
+
+.forum-flag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font: 400 11px/1.6 "Microsoft YaHei", sans-serif;
+  background: #f3e7cf;
+  color: #80511f;
+}
+
+.forum-flag.done {
+  background: #e3eee3;
+  color: #456a44;
+}
+
+.forum-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #8d7c65;
+}
+
+.forum-meta .forum-author {
+  color: #a95d25;
+  font-weight: 500;
+}
+
+.forum-meta .forum-time::before {
+  content: "·";
+  margin-right: 10px;
+  color: #c9b7a0;
+}
+
+.forum-tag {
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: #f7efe2;
+  color: #967550;
+  font-size: 11px;
+}
+
+/* ---------- 右侧指标 ---------- */
+.forum-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.forum-metrics strong {
+  font-size: 12px;
+  font-weight: 400;
+  color: #80511f;
+}
+
+.forum-enter {
+  font-size: 12px;
+  color: #a8612b;
+  text-decoration: none;
+  border-bottom: 1px dashed #d8c6aa;
+}
+
+.forum-enter:hover {
+  color: #8b471f;
+  border-bottom-color: #a8612b;
+}
+
+/* ---------- 话题广场：两列卡片 ---------- */
+.forum-topic-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.forum-topic {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: #fffdf9;
+  border: 1px solid #e6d9c5;
+  border-radius: 10px;
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+
+.forum-topic:hover {
+  border-color: #d5b992;
+  box-shadow: 0 10px 24px rgba(91, 54, 24, .10);
+  transform: translateY(-2px);
+}
+
+.forum-topic h3 {
+  margin: 0;
+  font: 700 19px/1.4 serif;
+  color: #773b1b;
+}
+
+.forum-topic h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.forum-topic h3 a:hover {
+  color: #a8321e;
+}
+
+.forum-topic .clip {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #80715e;
+  min-height: 44px;
+}
+
+.forum-topic-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 10px;
+  border-top: 1px dashed #ece0cf;
+  font-size: 12px;
+  color: #8d7c65;
+}
+
+.forum-topic-foot b {
+  font-weight: 500;
+  color: #773b1b;
+}
+
+.forum-topic .btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* ---------- 榜单补充 ---------- */
+.forum-ranking .forum-rank-empty {
+  margin: 8px 0 0;
+  padding: 18px 0;
+  text-align: center;
+  font-size: 12px;
+  color: #a2917c;
+}
+
+.forum-ranking li a {
+  display: block;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.forum-ranking li a:hover strong {
+  color: #a8321e;
+}
+
+.forum-ranking li a strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #5a3c22;
+}
+
+/* ---------- 空状态 ---------- */
+.forum-empty h3 {
+  margin: 0 0 8px;
+  font: 700 20px/1.4 serif;
+  color: #773b1b;
+}
+
+.forum-empty p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #8d7c65;
+}
+
+.forum-empty .actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+/* ---------- 窄屏 ---------- */
+@media (max-width: 900px) {
+  .forum-topic-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .forum-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .forum-thumb {
+    display: none;
+  }
+
+  .forum-metrics {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 10px;
+    border-top: 1px dashed #ece0cf;
+  }
+
+  .forum-tabs .forum-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
