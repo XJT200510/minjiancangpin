@@ -13,7 +13,7 @@ const specs={
  announcement:[F('announcement_title','公告标题','text',true,100),F('announcement_content','公告正文','textarea',true,2000),F('start_time','展示开始','datetime-local'),F('end_time','展示结束','datetime-local')]
 };
 const permissions=['用户身份查询','账号封禁与解封','身份认定审核','藏品最终审核','课程审核','活动审核','藏品管理','帖子管理','话题管理','问答管理','课程管理','活动管理','公告管理','专题展览管理','鉴定任务分配','评论管理','回复管理','课程评分管理','内容举报处理','账号举报处理'];
-function seed(){const s={version:1,current:1,seq:100,users:[{id:1,name:'林知秋',phone:'13800000001',intro:'记录家中器物，收藏生活记忆。',roles:[],status:'正常'},{id:2,name:'许文博',phone:'13800000002',intro:'陶瓷与民间器物研究者。',roles:['专家','课程发布人'],status:'正常'},{id:3,name:'江南民俗文化中心',phone:'13800000003',intro:'面向社区开展民俗文化交流。',roles:['机构'],status:'正常'},{id:4,name:'陈宁',phone:'13800000004',roles:['管理员'],status:'正常',roleIds:[1]},{id:5,name:'周明',phone:'13800000005',roles:['超级管理员'],status:'正常',roleIds:[1]},{id:6,name:'陈砚生',phone:'13800000006',roles:['专家'],status:'正常'},{id:7,name:'周予安',phone:'13800000007',roles:['专家'],status:'正常'}],records:[],comments:[],answers:[],replies:[],likes:[],favorites:[],folders:[{id:1,user:1,name:'默认收藏夹',default:true}],ratings:[],relations:[],footprints:[],messages:[{id:1,sender:2,receiver:1,content:'你记录的木匣很有意思，拍摄时可以补一张底部全貌。',time:'2026-10-26T09:30:00',hidden:[]}],notifications:[{id:1,user:1,title:'欢迎来到民藏',content:'从记录一件家中老物件开始吧。',time:'2026-10-26T08:00:00',route:'resource'}],applications:[],invitations:[],appraisals:[],enrollments:[],certificates:[],reports:[],appeals:[],logs:[],roles:[{id:1,name:'综合管理员',description:'日常审核与平台管理',permissions:[...permissions],enabled:true}],specialties:[{expert:2,category:'陶瓷',era:'清代'},{expert:6,category:'陶瓷',era:'清代'},{expert:7,category:'陶瓷',era:'清代'}]};
+function seed(){const s={version:2,current:1,seq:100,users:[{id:1,name:'林知秋',phone:'13800000001',intro:'记录家中器物，收藏生活记忆。',roles:[],status:'正常'},{id:2,name:'许文博',phone:'13800000002',intro:'陶瓷与民间器物研究者。',roles:['专家','课程发布人'],status:'正常'},{id:3,name:'江南民俗文化中心',phone:'13800000003',intro:'面向社区开展民俗文化交流。',roles:['机构'],status:'正常'},{id:4,name:'陈宁',phone:'13800000004',roles:['管理员'],status:'正常',roleIds:[1]},{id:5,name:'周明',phone:'13800000005',roles:['超级管理员'],status:'正常',roleIds:[1]},{id:6,name:'陈砚生',phone:'13800000006',roles:['专家'],status:'正常'},{id:7,name:'周予安',phone:'13800000007',roles:['专家'],status:'正常'}],records:[],comments:[],answers:[],replies:[],likes:[],favorites:[],folders:[{id:1,user:1,name:'默认收藏夹',default:true}],ratings:[],relations:[],footprints:[],messages:[{id:1,sender:2,receiver:1,content:'你记录的木匣很有意思，拍摄时可以补一张底部全貌。',time:'2026-10-26T09:30:00',hidden:[]}],notifications:[{id:1,user:1,title:'欢迎来到民藏',content:'从记录一件家中老物件开始吧。',time:'2026-10-26T08:00:00',route:'resource'}],applications:[],invitations:[],appraisals:[],enrollments:[],certificates:[],reports:[],appeals:[],logs:[],roles:[{id:1,name:'综合管理员',description:'日常审核与平台管理',permissions:[...permissions],enabled:true}],specialties:[{expert:2,category:'陶瓷',era:'清代'},{expert:6,category:'陶瓷',era:'清代'},{expert:7,category:'陶瓷',era:'清代'}]};
  const add=(id,kind,user,title,body,img,extra={})=>s.records.push({id,kind,user,title,body,img,status:'已发布',created:`2026-10-${String(10+id).padStart(2,'0')}T${String(8+id).padStart(2,'0')}:20:00`,updated:`2026-10-${String(12+id).padStart(2,'0')}T${String(9+id).padStart(2,'0')}:35:00`,...extra});
  const museumItems = [
             {
@@ -60,6 +60,55 @@ function seed(){const s={version:1,current:1,seq:100,users:[{id:1,name:'林知�
  add(8,'activity',3,'周末民间收藏交流会','带上一件藏品的照片，一起交流记录方法和家庭故事。','basket',{content:'周末民间收藏交流会：带上一件藏品的照片，一起交流记录方法和家庭故事。',activity_time:'2026-12-12T14:00',activity_location:'江南民俗文化中心二楼',registration_deadline:'2026-12-10T18:00',max_participants:30});
  add(9,'exhibition',3,'器物里的江南生活','从瓷瓶到木匣，走近家庭生活中的文化记忆。','wood',{topic_name:'器物里的江南生活',introduction:'从瓷瓶到木匣，走近家庭生活中的文化记忆。',collection_ids:'1,2,3'});
  add(10,'announcement',4,'藏品资料填写说明','请如实记录来源。不确定的年代与作者可以标注待核实，避免将推测作为定论。','letters',{announcement_title:'藏品资料填写说明',announcement_content:'请如实记录来源。不确定的年代与作者可以标注待核实。'});
+ /* 论坛交流演示数据：帖子 6 条 / 问题 6 条 / 话题 4 个。
+    互动量刻意做得不一致，热帖榜、热门问题榜、热门话题榜才有区分度。 */
+ const fd=(id,kind,user,title,body,img,topics,day,extra={})=>s.records.push({id,kind,user,title,body,img,status:'已发布',visibility:'公开',topics,created:`2026-10-${String(day).padStart(2,'0')}T${String(8+id%9).padStart(2,'0')}:20:00`,updated:`2026-10-${String(day).padStart(2,'0')}T${String(9+id%9).padStart(2,'0')}:40:00`,...extra});
+
+ // —— 话题 ——
+ fd(23,'topic',2,'器物摄影','交流自然光的用法、构图取舍与细节拍摄，让照片更接近实物。','album','',11,{topic_name:'器物摄影',topic_description:'交流自然光的用法、构图取舍与细节拍摄。'});
+ fd(24,'topic',1,'老物件故事','家里那件东西的来历、谁用过、为什么一直留着。','letters','',12,{topic_name:'老物件故事',topic_description:'家里那件东西的来历、谁用过、为什么一直留着。'});
+ fd(25,'topic',3,'木作文房','木匣、笔筒、算盘一类木器的辨识、修复与日常保养。','basket','',13,{topic_name:'木作文房',topic_description:'木匣、笔筒、算盘一类木器的辨识、修复与日常保养。'});
+ fd(26,'topic',7,'瓷器鉴定','从底款、胎釉、器型与纹饰入手，一点点把观察写清楚。','bowl','',14,{topic_name:'瓷器鉴定',topic_description:'从底款、胎釉、器型与纹饰入手，一点点把观察写清楚。'});
+
+ // —— 帖子 ——
+ fd(31,'post',1,'一张底款照片，看清了年代线索','把台灯换成侧向的自然光，底款的青花发色和釉面气泡都能看清了。我的做法是先把器物放到窗边，再用手挡掉直射的那部分光。','wood','瓷器鉴定,器物摄影',21,{post_title:'一张底款照片，看清了年代线索',content:'把台灯换成侧向的自然光，底款的青花发色和釉面气泡都能看清了。'});
+ fd(32,'post',3,'外婆的木梳妆匣，榫卯还在','匣盖内侧有一行手写的名字，字迹已经淡了。木料是榉木，铜活氧化成暗绿色，但开合仍然顺滑。','basket','木作文房,老物件故事',20,{post_title:'外婆的木梳妆匣，榫卯还在',content:'匣盖内侧有一行手写的名字，字迹已经淡了。木料是榉木，铜活氧化成暗绿色。'});
+ fd(33,'post',2,'自然光下拍青花，从反光到纹饰','阴天的散射光最稳。把手机固定住、用定时器避免手抖，纹饰的层次会清楚很多。','vase','器物摄影,瓷器鉴定',19,{post_title:'自然光下拍青花，从反光到纹饰',content:'阴天的散射光最稳。把手机固定住、用定时器避免手抖，纹饰的层次会清楚很多。'});
+ fd(34,'post',7,'老照片上的题字该怎么存档','除了翻拍正面，我把背面的题字也单独拍了一张，并在说明里注明拍摄时间与存放位置。','letters','数字建档,老物件故事',18,{post_title:'老照片上的题字该怎么存档',content:'除了翻拍正面，我把背面的题字也单独拍了一张，并在说明里注明拍摄时间与存放位置。'});
+ fd(35,'post',1,'给每件器物写一段来历，比编号更重要','编号解决的是找到它，来历解决的是为什么留着它。我习惯先写一段口述，再补年代与尺寸。','album','老物件故事,数字建档',17,{post_title:'给每件器物写一段来历，比编号更重要',content:'编号解决的是找到它，来历解决的是为什么留着它。'});
+ fd(36,'post',3,'木器保养：别用湿布，先说清原因','湿气会让木料涨缩，漆面容易起翘。日常只用干软布除尘，雨季在柜里放一包干燥剂。','clock','木作文房',16,{post_title:'木器保养：别用湿布，先说清原因',content:'湿气会让木料涨缩，漆面容易起翘。日常只用干软布除尘。'});
+
+ // —— 问题 ——
+ fd(17,'question',1,'底足的火石红能作为断代依据吗','底足露胎处有一圈橙红色，有人说这是老件的特征，也有人说是烧成气氛造成的。该怎么看？','vase','瓷器鉴定',21,{question_title:'底足的火石红能作为断代依据吗',content:'底足露胎处有一圈橙红色，有人说这是老件的特征，也有人说是烧成气氛造成的。',resolved:false});
+ fd(18,'question',3,'木匣上的铜活锈了，要不要除锈','暗绿色的锈迹已经影响开合手感，但担心一除就伤了原来的皮壳。','basket','木作文房',20,{question_title:'木匣上的铜活锈了，要不要除锈',content:'暗绿色的锈迹已经影响开合手感，但担心一除就伤了原来的皮壳。',resolved:true});
+ fd(19,'question',7,'老照片背面写字，用什么笔不伤纸','想标注时间和人物，又怕墨水往正面透。','letters','数字建档',19,{question_title:'老照片背面写字，用什么笔不伤纸',content:'想标注时间和人物，又怕墨水往正面透。',resolved:false});
+ fd(20,'question',1,'手机拍器物，怎样避免边缘变形','竖着拍瓶类总感觉上头大下头小，是不是镜头的问题？','album','器物摄影',18,{question_title:'手机拍器物，怎样避免边缘变形',content:'竖着拍瓶类总感觉上头大下头小，是不是镜头的问题？',resolved:true});
+ fd(21,'question',2,'藏品来源说不清，建档时该怎么写','长辈留下的，具体从哪来的已经问不到了，这一栏空着又不像完整的档案。','tickets','数字建档',17,{question_title:'藏品来源说不清，建档时该怎么写',content:'长辈留下的，具体从哪来的已经问不到了，这一栏空着又不像完整的档案。',resolved:false});
+ fd(22,'question',6,'粉彩和珐琅彩，肉眼怎么区分','两件小碟看着都是彩绘，上手看胎和彩料又不敢确定。','bowl','瓷器鉴定',16,{question_title:'粉彩和珐琅彩，肉眼怎么区分',content:'两件小碟看着都是彩绘，上手看胎和彩料又不敢确定。',resolved:false});
+
+ // —— 互动数据：点赞 / 收藏 / 评论 / 回答 ——
+ const lk=(record,users)=>users.forEach((u,i)=>s.likes.push({user:u,record,time:`2026-10-2${i}T10:00:00`}));
+ const fv=(record,users)=>users.forEach((u,i)=>s.favorites.push({record,user:u,folder:1,time:`2026-10-2${i}T10:30:00`}));
+ const cm2=(record,user,content)=>s.comments.push({id:200+s.comments.length,record,user,content,time:'2026-10-23T09:30:00'});
+ lk(4,[2]); cm2(4,6,'底足照片很清楚，建议再补充口沿特写。');
+ lk(31,[1,3,7]); fv(31,[2,6]); cm2(31,2,'侧光确实有效，我试了一下底款清楚多了。');
+ lk(32,[1,2]);   fv(32,[3,7,1]); cm2(32,1,'这种有手写名字的木匣最难得了。'); cm2(32,6,'铜活别急着擦，包浆也是信息。');
+ lk(33,[1,2,6]); fv(33,[3]); cm2(33,7,'定时器这招好用，我一直在抖。');
+ lk(34,[1,3]);   fv(34,[2]); cm2(34,1,'背面也拍一张这个习惯要学。');
+ lk(35,[2]);     fv(35,[1]); cm2(35,3,'口述那段最值钱，建议连录音一起存。');
+ lk(36,[3]);
+ const an2=(id,record,user,content,accepted)=>s.answers.push({id,record,user,content,accepted,time:'2026-10-23T11:00:00'});
+ an2(101,18,6,'先别整体除锈。用软布干擦掉浮锈，开合处上一点蜡即可。',true);
+ an2(102,18,7,'铜绿本身是稳定层，大面积洗掉反而会露新铜色。',false);
+ an2(103,18,2,'如果已经影响开合，只需处理轴销，不要动表面的皮壳。',false);
+ an2(104,19,2,'用软铅笔在无影像的边角轻写，或者另附一张说明纸。',true);
+ an2(105,20,2,'用手机的长焦端退后拍，广角贴近拍必然变形。',true);
+ an2(106,20,7,'关键是让镜头高度落在器物中部，再稍微退远裁切。',false);
+ an2(107,22,2,'看彩料：粉彩用玻璃白打底，颜色有厚度；珐琅彩更平、更像油画。',true);
+ an2(108,22,6,'还要看胎，珐琅彩多为景德镇素胎送内廷二次烧成。',false);
+ an2(109,22,7,'放大看彩料边缘，粉彩有渲染过渡，珐琅彩边界更硬。',false);
+ an2(110,22,1,'受教了，我一直只凭颜色判断。',false);
+
  s.answers.push({id:1,record:5,user:2,content:'可以试试靠窗的柔和自然光，先关掉直射台灯，再稍微调整器物角度。',accepted:false,time:'2026-10-22T10:00:00'});s.comments.push({id:1,record:1,user:6,content:'底足照片很清楚，建议再补充口沿特写。',time:'2026-10-23T10:00:00'});const exhibitions = [
     {title:'纸短情长：家书里的牵挂',body:'从一封家书，读懂生活中的记忆与牵挂。',cover:'assets/exhibition-letters.png',items:'1,3'},
     {title:'青花里的匠心',body:'从器形与纹饰认识青花瓷的工艺之美。',cover:'assets/exhibition-porcelain.png',items:'1'},
@@ -69,7 +118,7 @@ function seed(){const s={version:1,current:1,seq:100,users:[{id:1,name:'林知�
    topic_name:item.title, introduction:item.body, cover_url:item.cover, collection_ids:item.items
  }));
  return s;}
- let db; try { db = JSON.parse(localStorage.getItem(key)); if (!db || db.version !== 1) db = seed(); } catch { db = seed(); }
+ let db; try { db = JSON.parse(localStorage.getItem(key)); if (!db || db.version !== 2) db = seed(); } catch { db = seed(); }
 
 const user=()=>db.users.find(x=>x.id===db.current);
 const uname=id=>db.users.find(x=>x.id===id)?.name||"已注销用户";
