@@ -133,7 +133,44 @@ function rating(id){let a=db.ratings.filter(x=>x.record===id&&!x.deleted);return
 // Return persistence status; the UI layer decides how to display an error.
 function save(){try{localStorage.setItem(key,JSON.stringify(db));return true;}catch{return false;}}
 function resetData(){db=seed();return save();}
-export { db, seed, save, resetData, key, now, options, names, F, specs, permissions, user, uname, rec, uid, notify, log, admin, can, visible, rating };
+
+/* 如果同一目录下有 ASP.NET 后端（api/Bootstrap.ashx），就用数据库里的数据覆盖本地演示数据。
+   返回值区分三种情况：
+     'ok'          读到数据库
+     'no-backend'  没有后端（纯静态部署），属正常演示模式
+     'db-error'    后端在，但查询失败（连接串或表结构有问题） */
+async function loadBootstrap(){
+ try{
+  const response=await fetch('api/Bootstrap.ashx',{cache:'no-store'});
+  if(!response.ok)return response.status===404?'no-backend':'db-error';
+  const data=await response.json();
+  if(!data.ok)return 'db-error';
+  if(Array.isArray(data.users))db.users=data.users;
+  if(Array.isArray(data.records))db.records=data.records;
+  if(Array.isArray(data.comments))db.comments=data.comments;
+  if(Array.isArray(data.answers))db.answers=data.answers;
+  if(Array.isArray(data.replies))db.replies=data.replies;
+  if(Array.isArray(data.likes))db.likes=data.likes;
+  if(Array.isArray(data.favorites))db.favorites=data.favorites;
+  if(Array.isArray(data.folders)&&data.folders.length)db.folders=data.folders;
+  if(Array.isArray(data.ratings))db.ratings=data.ratings;
+  db.current=data.current||db.users[0]?.id||1;
+  const ids=new Set(db.records.map(r=>r.id));
+  db.favorites=(db.favorites||[]).filter(f=>ids.has(f.record));
+  db.likes=(db.likes||[]).filter(f=>ids.has(f.record));
+  db.footprints=(db.footprints||[]).filter(f=>ids.has(f.record));
+  // 数据库的回复只带 comment_id，这里补回所属记录，供详情页与通知跳转使用
+  const commentRecord={};
+  db.comments.forEach(c=>{commentRecord[c.id]=c.record;});
+  db.replies=(db.replies||[]).map(x=>x.record?x:{...x,record:commentRecord[x.comment]});
+  db.apiMode=true;
+  return 'ok';
+ }catch{
+  return 'no-backend';
+ }
+}
+
+export { db, seed, save, resetData, key, now, options, names, F, specs, permissions, user, uname, rec, uid, notify, log, admin, can, visible, rating, loadBootstrap };
 
 function allowedKind(kind){if(!user()||user().status!=='正常')return false;if(kind==='course')return user().roles.includes('课程发布人');if(kind==='activity')return user().roles.includes('机构');if(['announcement','exhibition'].includes(kind))return can(kind==='announcement'?'公告管理':'专题展览管理');return true;}
 

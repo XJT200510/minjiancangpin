@@ -1,4 +1,5 @@
-import { db, seed, resetData, key, now, options, names, F, specs, permissions, user, uname, rec, uid, notify, log, admin, can, visible, rating, allowedKind, save as persist } from './data.js';
+import { db, seed, resetData, key, now, options, names, F, specs, permissions, user, uname, rec, uid, notify, log, admin, can, visible, rating, allowedKind, save as persist, loadBootstrap } from './data.js';
+import { FORUM_ACTIONS, runForumAction, setForumRefresh } from './forum-api.js';
 import { $, $$, esc, stamp, toast, button, link, empty, badge, head, table, modal, close, field, formModal, safeURL, imageFor, cards, tabs, initUI, catalog, enrollmentTable, certificateTable } from './utils.js';
 import { renderHome } from './pages/home.js';
 import { renderResource, renderDetail } from './pages/resource.js';
@@ -32,7 +33,9 @@ function need(){if(!user()){account();return false;}if(user().status!=='正常')
 function go(to){if(location.hash.slice(1)===to)render();else location.hash=to;}
 function account(){modal('切换体验账号',`<p class="note">用于检查不同身份的页面流程，不是真实登录。同一用户可以具备多个身份，机构须另行申请课程发布资格。</p><div class="account-list">${db.users.map(u=>`<div class="lesson"><b>${esc(u.name)}</b><p>${esc(u.roles.join('、')||'普通用户')} · ${u.status}</p>${button('使用此体验账号','switch',u.id)}</div>`).join('')}</div><div class="actions">${button('注册体验账号','register')}${button('以游客浏览','switch',0)}</div>`);}
 
-function bindEditor(){const form=$('#content-form');if(!form)return;form.onsubmit=e=>{e.preventDefault();const {kind,id,r}=editContext;const draft=e.submitter?.value==='draft';const formData=new FormData(form);const d=Object.fromEntries(formData);if(kind==='exhibition')d.collection_ids=formData.getAll('collection_ids').join(',');try{if(!allowedKind(kind))throw Error('当前账号无发布资格。');const title=d[specs[kind][0].key]?.trim();if(!title)throw Error('请至少填写标题或活动内容后再保存。');if(!draft&&!form.reportValidity())return;let lessons=$$('[data-lesson]',form).map(el=>{let i=el.dataset.lesson,o={id:uid()};for(const f of ['lesson_title','lesson_order','video_url','duration','content','material_reference'])o[f]=d[`lesson_${i}_${f}`];return o;});if(kind==='course'&&!draft&&!lessons.length)throw Error('请至少添加一个视频课时。');if(kind==='activity'&&!draft){if(new Date(d.registration_deadline)>new Date(d.activity_time))throw Error('报名截止不能晚于活动开始。');if(new Date(d.activity_time)<=new Date())throw Error('活动时间应晚于当前时间。');}if(kind==='exhibition'&&!draft&&(d.collection_ids||'').split(',').some(x=>!rec(x)||rec(x).kind!=='collection'||!visible(rec(x))))throw Error('请选择已发布的藏品作为展品。');const topicData=['post','question'].includes(kind)?prepareTopics(formData,draft):null;let record=r||{id:uid(),kind,user:db.current,created:now(),img:kind==='collection'?'vase':'letters'};for(const f of specs[kind])record[f.key]=d[f.key]?.trim()||'';Object.assign(record,{title:title.slice(0,kind==='activity'?50:kind==='post'?200:120),body:d.description||d.topic_description||d.content||d.introduction||d.announcement_content||'',updated:now(),status:draft?'草稿':['collection','course','activity'].includes(kind)?'待审核':'已发布'});if(topicData){
+function bindEditor(){const form=$('#content-form');if(!form)return;form.onsubmit=e=>{e.preventDefault();const {kind,id,r}=editContext;
+ if(db.apiMode&&['post','question','topic'].includes(kind)&&window.__forumSaveContent){window.__forumSaveContent(e,form,{kind,id,r});return;}
+ const draft=e.submitter?.value==='draft';const formData=new FormData(form);const d=Object.fromEntries(formData);if(kind==='exhibition')d.collection_ids=formData.getAll('collection_ids').join(',');try{if(!allowedKind(kind))throw Error('当前账号无发布资格。');const title=d[specs[kind][0].key]?.trim();if(!title)throw Error('请至少填写标题或活动内容后再保存。');if(!draft&&!form.reportValidity())return;let lessons=$$('[data-lesson]',form).map(el=>{let i=el.dataset.lesson,o={id:uid()};for(const f of ['lesson_title','lesson_order','video_url','duration','content','material_reference'])o[f]=d[`lesson_${i}_${f}`];return o;});if(kind==='course'&&!draft&&!lessons.length)throw Error('请至少添加一个视频课时。');if(kind==='activity'&&!draft){if(new Date(d.registration_deadline)>new Date(d.activity_time))throw Error('报名截止不能晚于活动开始。');if(new Date(d.activity_time)<=new Date())throw Error('活动时间应晚于当前时间。');}if(kind==='exhibition'&&!draft&&(d.collection_ids||'').split(',').some(x=>!rec(x)||rec(x).kind!=='collection'||!visible(rec(x))))throw Error('请选择已发布的藏品作为展品。');const topicData=['post','question'].includes(kind)?prepareTopics(formData,draft):null;let record=r||{id:uid(),kind,user:db.current,created:now(),img:kind==='collection'?'vase':'letters'};for(const f of specs[kind])record[f.key]=d[f.key]?.trim()||'';Object.assign(record,{title:title.slice(0,kind==='activity'?50:kind==='post'?200:120),body:d.description||d.topic_description||d.content||d.introduction||d.announcement_content||'',updated:now(),status:draft?'草稿':['collection','course','activity'].includes(kind)?'待审核':'已发布'});if(topicData){
  record.topics=topicData.topics;record.pendingTopic=topicData.pendingTopic;
  if(topicData.newTopic){const t=topicData.newTopic;db.records.unshift({id:uid(),kind:'topic',user:db.current,title:t.name,topic_name:t.name,body:t.description,topic_description:t.description,img:'letters',status:'已发布',created:now(),updated:now(),publishedAt:now()});}
  }
@@ -43,6 +46,9 @@ function reason(title,callback,fields=[],label='确认'){formModal(title,[...fie
 function owned(r){return r?.user===db.current||admin();}
 function mutate(fn){if(!need())return;fn();save();render();}
 function action(name,id,b){const n=+id;
+ // 论坛写操作交回 forum-api.js，由它调用 api/Forum.ashx 写库；
+ // 只有已连上数据库（db.apiMode）且属于论坛内容时才接手，否则继续走下面的本机流程。
+ if(db.apiMode&&FORUM_ACTIONS.includes(name)&&runForumAction(name,id,b))return;
  if(name==='share'){
    const record=rec(n);if(!record||!visible(record))return toast('内容暂不可分享');
    const url=new URL(location.href);url.hash='detail/'+n;
@@ -178,4 +184,17 @@ function render(){
  bindEditor();bindCreatorControls();bindTopicPicker();save();
 }
 initUI();
-$('#global-search-form').onsubmit=e=>{e.preventDefault();const q=new FormData(e.target).get('q').trim();go('search/'+encodeURIComponent(q));};window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});render();
+$('#global-search-form').onsubmit=e=>{e.preventDefault();const q=new FormData(e.target).get('q').trim();go('search/'+encodeURIComponent(q));};window.addEventListener('hashchange',()=>{render();window.scrollTo(0,0);});setForumRefresh(render);
+// 连上数据库就保持原提示；纯静态部署显示"演示模式"；后端在但报错才告警
+loadBootstrap().then(status=>{
+ if(status==='ok'||window.__bootstrapWarned)return;
+ window.__bootstrapWarned=true;
+ const span=document.querySelector('.demo-banner span');
+ if(!span)return;
+ if(status==='no-backend'){
+  span.textContent='演示模式 · 当前使用内置示例数据，操作记录保存在本机浏览器';
+ }else{
+  span.textContent='⚠ 数据库读取失败，当前显示的是本机演示数据 · 请检查 Web.config 连接串与表结构';
+  document.querySelector('.demo-banner')?.classList.add('demo-banner-warn');
+ }
+}).finally(()=>render());
